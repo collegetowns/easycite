@@ -1,0 +1,879 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Clear Cite</title>
+<meta name="description" content="Paste anything you have about a source and get a citation in APA, MLA, Chicago, Harvard or IEEE style. A free app from College Towns.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: an eye-chart header (rows shrink 20/200 to 20/20), then the paste box, the Rx reference slip, and the reference list. */
+:root {
+  --bg: #eaf0f1;          /* exam-room wall */
+  --surface: #ffffff;     /* chart / slip paper */
+  --ink: #101618;
+  --muted: #5a6a6e;
+  --line: #cfdadc;
+  --accent: #1d5d55;      /* phoropter green */
+  --accent-soft: #dcebe8;
+  --red: #b23a2e;         /* duochrome red */
+  --green: #2f7a3d;       /* duochrome green */
+  --font-chart: "Lexend", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-ui: "Lexend", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-ref: "Source Serif 4", "Times New Roman", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1314; --surface: #171e20; --ink: #e8eff0; --muted: #94a5a8;
+    --line: #2a3537; --accent: #74c2b5; --accent-soft: #1b3330; --red: #e57a6c; --green: #78c486;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1314; --surface: #171e20; --ink: #e8eff0; --muted: #94a5a8;
+  --line: #2a3537; --accent: #74c2b5; --accent-soft: #1b3330; --red: #e57a6c; --green: #78c486;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-weight: 400; font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 22px; }
+
+/* Eye chart header */
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding-block: 22px 0; overflow: hidden; }
+.chart h1 { margin: 0; font: inherit; }
+.line { display: grid; grid-template-columns: 4.2rem minmax(0, 1fr) 4.2rem; align-items: center; padding-inline: 12px; }
+.line .acuity, .line .num { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.line .num { text-align: right; }
+.line .letters { text-align: center; font-family: var(--font-chart); font-weight: 600; color: var(--ink); letter-spacing: 0.18em; padding-left: 0.18em; line-height: 1.15; }
+.l1 .letters { font-size: clamp(2.6rem, 11vw, 4.8rem); }
+.l2 .letters { font-size: clamp(1.7rem, 7vw, 2.9rem); }
+.l3 .letters { font-size: clamp(0.95rem, 3.4vw, 1.25rem); letter-spacing: 0.3em; padding-left: 0.3em; }
+.l4 .letters { font-size: 0.82rem; font-weight: 400; letter-spacing: 0.04em; padding-left: 0; color: var(--muted); }
+.line + .line { margin-top: 6px; }
+.l4 { padding-bottom: 18px; }
+.duo { display: grid; grid-template-columns: 1fr 1fr; }
+.duo span { height: 8px; }
+.duo span:first-child { background: var(--red); }
+.duo span:last-child { background: var(--green); }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+
+.paste { display: grid; gap: 10px; }
+textarea {
+  width: 100%; font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; min-height: 140px; resize: vertical;
+}
+textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bar .hint { font-size: 0.82rem; color: var(--muted); }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 20px; display: grid; gap: 12px; }
+.card h2 { margin: 0; font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.rx { font-family: var(--font-ref); font-size: 1.5rem; line-height: 1; color: var(--accent); letter-spacing: 0; text-transform: none; }
+.slip { border-top: 3px solid var(--accent); }
+.tag { font-size: 0.72rem; letter-spacing: 0.02em; background: var(--accent-soft); color: var(--accent); padding: 2px 9px; border-radius: 999px; text-transform: none; font-weight: 500; }
+.ref {
+  font-family: var(--font-ref); font-size: 1.08rem; line-height: 2;
+  padding-left: 0.5in; text-indent: -0.5in; overflow-wrap: anywhere; margin: 0;
+}
+.intext { font-family: var(--font-ref); font-size: 1.02rem; margin: 0; }
+.thinking { color: var(--muted); font-style: italic; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  font: inherit; font-weight: 500; font-size: 0.92rem; border-radius: 6px; padding: 9px 16px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--surface);
+}
+button.ghost { background: transparent; color: var(--accent); }
+button:disabled { opacity: 0.55; cursor: default; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.missing, .retrieved { margin: 0; font-size: 0.85rem; }
+.missing { color: var(--red); }
+.retrieved { color: var(--muted); }
+.status { font-size: 0.84rem; color: var(--accent); min-height: 1.2em; margin: 0; }
+.err { font-size: 0.9rem; color: var(--red); margin: 0; }
+
+.list ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; }
+.list .x { background: transparent; border: none; color: var(--muted); padding: 4px 8px; font-size: 1.1rem; line-height: 1; }
+.list .x:hover { color: var(--ink); }
+.empty { color: var(--muted); margin: 0; }
+@media (max-width: 460px) { .line { grid-template-columns: 3rem minmax(0, 1fr) 3rem; padding-inline: 8px; } }
+
+/* Mode switch: online analysis (Claude) or fill in yourself (no AI, works anywhere) */
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mode { text-align: left; display: grid; gap: 2px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.mode b { font-weight: 600; font-size: 0.95rem; }
+.mode small { color: var(--muted); font-size: 0.8rem; font-weight: 400; }
+.mode[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+.online-note { margin: 0; font-size: 0.88rem; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; padding: 10px 14px; }
+.online-note a { color: var(--accent); font-weight: 500; }
+.form { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 10px 12px; }
+.form label { display: grid; gap: 3px; font-size: 0.78rem; color: var(--muted); grid-column: span 3; }
+.form label.full { grid-column: 1 / -1; }
+.form label.third { grid-column: span 2; }
+.form input, .form select, .form textarea { width: 100%; min-width: 0; font: inherit; font-size: 0.92rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; min-height: 0; }
+.form textarea { min-height: 64px; }
+.form .check { display: flex; gap: 8px; align-items: center; grid-column: 1 / -1; font-size: 0.85rem; color: var(--ink); }
+.form [data-for] { display: none; }
+.form[data-type="journal"] [data-for~="journal"], .form[data-type="web"] [data-for~="web"], .form[data-type="news"] [data-for~="news"],
+.form[data-type="book"] [data-for~="book"], .form[data-type="chapter"] [data-for~="chapter"], .form[data-type="video"] [data-for~="video"],
+.form[data-type="report"] [data-for~="report"] { display: grid; }
+.form[data-type="web"] .check[data-for~="web"] { display: flex; }
+.found { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; padding: 10px 12px; font-size: 0.86rem; display: grid; gap: 6px; }
+.found p { margin: 0; }
+.found .alts { display: flex; flex-wrap: wrap; gap: 6px; }
+.found .alts button { font-size: 0.8rem; padding: 5px 10px; text-align: left; max-width: 100%; white-space: normal; }
+.styles { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.styles::before { content: "Style"; font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.styles button { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; font-size: 0.9rem; }
+.styles button[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.legacy { font-family: var(--font-ui); font-size: 0.78rem; color: var(--muted); }
+.ref.num { padding-left: 2.6em; text-indent: -2.6em; }
+.getapp { display: flex; gap: 12px; align-items: center; margin: 0; font-size: 0.82rem; color: var(--muted); }
+.getapp button { flex: none; padding: 6px 12px; font-size: 0.85rem; }
+.foot { text-align: center; font-size: 0.8rem; color: var(--muted); margin: 6px 0 0; }
+.foot a { color: var(--accent); }
+@media (max-width: 560px) { .modes { grid-template-columns: 1fr; } .form label, .form label.third { grid-column: 1 / -1; } }
+</style>
+
+<div class="wrap">
+  <header class="chart">
+    <h1 aria-label="Clear Cite">
+      <span class="line l1" aria-hidden="true"><span class="acuity">20/200</span><span class="letters">CLEAR</span><span class="num">1</span></span>
+      <span class="line l2" aria-hidden="true"><span class="acuity">20/70</span><span class="letters">CITE</span><span class="num">2</span></span>
+    </h1>
+    <div class="line l3" aria-hidden="true"><span class="acuity">20/30</span><span class="letters" id="chart-style">APA 7</span><span class="num">3</span></div>
+    <div class="line l4"><span class="acuity" aria-hidden="true">20/20</span><span class="letters">Citations you can read without squinting</span><span class="num" aria-hidden="true">4</span></div>
+    <div class="duo" aria-hidden="true"><span></span><span></span></div>
+  </header>
+
+  <p class="lede">Paste whatever you have about a source: a link, the title, author names, a date, a messy copy from a database page. Clear Cite brings it into focus as a reference in the style you need.</p>
+
+  <div class="styles" role="radiogroup" aria-label="Citation style" id="styles"></div>
+
+  <div class="modes" role="group" aria-label="How to make the citation">
+    <button type="button" class="mode" id="m-online" aria-pressed="true"><b>Online analysis</b><small>Claude reads what you paste and fills in every field</small></button>
+    <button type="button" class="mode" id="m-manual" aria-pressed="false"><b>Free lookup</b><small>No account needed. Finds articles and books by DOI or title</small></button>
+  </div>
+  <p class="online-note" id="online-note" hidden>Online analysis runs inside Claude. <a href="https://claude.ai/artifact/PHoUYU82KP7md4gmpEQgfd" target="_blank" rel="noopener">Open Clear Cite in Claude</a> (free account needed), or use the <a href="#" id="to-manual">Free lookup</a> right here, no account needed.</p>
+
+  <p class="getapp" id="getapp-row"><button type="button" class="ghost" id="getapp">Download the app</button><span>Keep Clear Cite on your computer and open it any time. The form works offline; Free lookup needs an internet connection.</span></p>
+
+  <div class="paste">
+    <textarea id="raw" aria-label="Source details">prospect theory an analysis of decision under risk
+kahneman and tversky, econometrica 1979 vol 47 no 2 pp 263-291
+doi 10.2307/1914185</textarea>
+    <div class="bar">
+      <button type="button" id="go">Make citation</button>
+      <button type="button" class="ghost" id="clear">Clear</button>
+      <span class="hint" id="kbd-hint">Ctrl/⌘ + Enter also works</span>
+    </div>
+    <p class="err" id="err" hidden></p>
+  </div>
+
+  <section class="card" id="manual" hidden>
+    <h2>Free lookup</h2>
+    <div class="btns"><button type="button" id="lookup">Look it up</button><button type="button" class="ghost" id="fill">Just fill in what I pasted</button></div>
+    <p class="hint" style="font-size:.82rem;color:var(--muted);margin:0">Look it up searches Crossref, the free index of DOIs, for journal articles, books, chapters and reports. Webpages and news stories usually aren't there: use the form below for those.</p>
+    <div id="found" class="found" hidden></div>
+    <h2 style="margin-top:6px">Source details</h2>
+    <div class="form" id="form" data-type="journal">
+      <label class="full">Type of source
+        <select id="f-type"><option value="journal">Journal article</option><option value="web">Webpage</option><option value="news">News / magazine article</option><option value="book">Book</option><option value="chapter">Book chapter</option><option value="report">Report</option><option value="video">Video</option></select></label>
+      <label class="full">Authors, one per line: Family, Given (or an organization name)
+        <textarea id="f-authors" placeholder="Kahneman, Daniel&#10;Tversky, Amos"></textarea></label>
+      <label class="third">Year<input id="f-year" inputmode="numeric" placeholder="2024"></label>
+      <label class="third" data-for="web news video">Month (1–12)<input id="f-month" inputmode="numeric"></label>
+      <label class="third" data-for="web news video">Day<input id="f-day" inputmode="numeric"></label>
+      <label class="full">Title (sentence case: capitalize the first word and proper nouns)<input id="f-title"></label>
+      <label class="full" data-for="journal news web video"><span id="f-cont-lbl">Journal name</span><input id="f-container"></label>
+      <label class="third" data-for="journal">Volume<input id="f-volume"></label>
+      <label class="third" data-for="journal">Issue<input id="f-issue"></label>
+      <label class="third" data-for="journal chapter">Pages<input id="f-pages" placeholder="263-291"></label>
+      <label data-for="chapter">Book title<input id="f-book"></label>
+      <label data-for="chapter">Editors<input id="f-editors" placeholder="J. Smith (Ed.)"></label>
+      <label data-for="book chapter report">Publisher<input id="f-publisher"></label>
+      <label data-for="book">Edition<input id="f-edition" placeholder="2"></label>
+      <label class="full">DOI or URL<input id="f-link"></label>
+      <label class="check" data-for="web"><input type="checkbox" id="f-changes"> This page keeps changing (wiki, dictionary entry, live data), so add the date I viewed it</label>
+    </div>
+    <div class="btns"><button type="button" id="go-manual">Make citation</button></div>
+  </section>
+
+  <section class="card slip" aria-live="polite">
+    <h2><span class="rx" aria-hidden="true">℞</span> Reference <span class="tag" id="kind">Example</span></h2>
+    <p class="ref" id="ref"></p>
+    <h2 id="cite-title">In-text citation</h2>
+    <p class="intext" id="intext"></p>
+    <p class="retrieved" id="retrieved" hidden></p>
+    <p class="missing" id="missing" hidden></p>
+    <div class="btns">
+      <button type="button" id="copy">Copy reference</button>
+      <button type="button" class="ghost" id="copy-in">Copy in-text</button>
+      <button type="button" class="ghost" id="save">Add to list</button>
+    </div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <section class="card list">
+    <h2 id="list-title">References</h2>
+    <p class="empty" id="empty">Citations you add appear here in alphabetical order, ready to paste into your paper.</p>
+    <ol id="list"></ol>
+    <div class="btns" id="list-btns" hidden><button type="button" class="ghost" id="copy-all">Copy whole list</button><button type="button" class="ghost" id="dl-word">Download Word file</button><button type="button" class="ghost" id="dl-txt">Download text file</button></div>
+  </section>
+  <p class="foot">A free app from <a href="https://www.collegetowns.org/" target="_blank" rel="noopener">College Towns</a>, where urbanism meets higher education. Your list stays in this browser.</p>
+</div>
+
+<script>
+// The page's own source, captured before anything is drawn, so "Download the app" can save a copy.
+const APP_SOURCE = "<!DOCTYPE html>\n" + document.documentElement.cloneNode(true).outerHTML;
+const IS_LOCAL = !/^https?:$/.test(location.protocol);
+const $ = id => document.getElementById(id);
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const KINDS = { journal: "Journal article", web: "Webpage", news: "News / magazine", book: "Book", chapter: "Book chapter", video: "Video", report: "Report" };
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const endP = s => /[.?!]$/.test(s) ? s : s + ".";
+const strip = html => { const d = document.createElement("div"); d.innerHTML = html; return d.textContent; };
+const str = v => (v === null || v === undefined) ? "" : String(v).trim();
+
+// Example shown at load (what Claude returns for the sample text above)
+const EXAMPLE = {
+  type: "journal",
+  authors: [{ family: "Kahneman", given: "Daniel" }, { family: "Tversky", given: "Amos" }],
+  year: "1979", title: "Prospect theory: An analysis of decision under risk",
+  container: "Econometrica", volume: "47", issue: "2", pages: "263-291", doi_or_url: "10.2307/1914185", missing: []
+};
+
+function initials(given) {
+  return str(given).split(/\s+/).filter(Boolean).map(tok =>
+    tok.replace(/\./g, "").split("-").filter(Boolean).map(p => p.charAt(0).toUpperCase() + ".").join("-")
+  ).join(" ");
+}
+function authorRef(a) {
+  if (a.group) return str(a.group);
+  const i = initials(a.given);
+  return i ? `${str(a.family)}, ${i}` : str(a.family);
+}
+function authorList(list) {
+  const n = list.map(authorRef);
+  if (n.length === 1) return n[0];
+  if (n.length === 2) return `${n[0]}, & ${n[1]}`;
+  if (n.length <= 20) return n.slice(0, -1).join(", ") + ", & " + n[n.length - 1];
+  return n.slice(0, 19).join(", ") + ", . . . " + n[n.length - 1];
+}
+function linkOf(s) {
+  s = str(s).replace(/^doi:\s*/i, "");
+  if (!s) return "";
+  if (/^10\.\d{4,}\//.test(s)) return "https://doi.org/" + s;
+  s = s.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "https://doi.org/");
+  if (!/^https?:\/\//i.test(s)) s = "https://" + s;
+  return s;
+}
+function retrievedDate(a) {
+  const s = /^\d{4}-\d{2}-\d{2}$/.test(str(a)) ? a + "T12:00:00" : a;
+  const d = s && !isNaN(Date.parse(s)) ? new Date(s) : new Date();
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+const ordinal = n => { n = +n; const s = ["th","st","nd","rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
+
+function format(c) {
+  const type = c.type in KINDS ? c.type : "web";
+  const authors = (Array.isArray(c.authors) ? c.authors : []).filter(a => a && (str(a.group) || str(a.family)));
+  const title = str(c.title);
+  const cont = str(c.container);
+  const year = str(c.year) || "n.d.";
+  const dated = ["web", "news", "video"].includes(type);
+  let dateTxt = year;
+  const m = +c.month;
+  if (dated && year !== "n.d." && m >= 1 && m <= 12) dateTxt += ", " + MONTHS[m - 1] + (+c.day ? " " + +c.day : "");
+  const datePart = `(${esc(dateTxt)}).`;
+
+  const italicTitle = ["web", "book", "video", "report"].includes(type);
+  let titlePart = "";
+  if (title) {
+    if (italicTitle) {
+      const ed = str(c.edition).replace(/\D/g, "");
+      const edTxt = type === "book" && ed && ed !== "1" ? ` (${ordinal(ed)} ed.)` : "";
+      const fmt = type === "video" ? " [Video]" : "";
+      titlePart = `<i>${esc(title)}</i>${edTxt}${fmt}` + (/[?!]$/.test(title) && !edTxt && !fmt ? "" : ".");
+    } else titlePart = esc(endP(title));
+  }
+
+  const same = s => authors.length === 1 && str(authors[0].group).toLowerCase() === s.toLowerCase();
+  const pub = str(c.publisher);
+  let source = "";
+  if (type === "journal" && cont) {
+    const vol = str(c.volume), iss = str(c.issue);
+    const pg = str(c.pages).replace(/\s*[-–—]\s*/, "–");
+    source = `<i>${esc(cont)}</i>` + (vol ? `, <i>${esc(vol)}</i>` : "") + (iss ? `(${esc(iss)})` : "") + (pg ? `, ${esc(pg)}` : "") + ".";
+  } else if (type === "news" && cont) source = `<i>${esc(endP(cont))}</i>`;
+  else if ((type === "web" || type === "video") && cont && !same(cont)) source = esc(endP(cont));
+  else if (type === "chapter") {
+    const eds = str(c.editors), book = str(c.book_title), pg = str(c.pages).replace(/\s*[-–—]\s*/, "–");
+    source = "In " + (eds ? esc(eds) + ", " : "") + (book ? `<i>${esc(book)}</i>` : "") + (pg ? ` (pp. ${esc(pg)})` : "") + ".";
+    if (pub) source += " " + esc(endP(pub));
+  } else if ((type === "book" || type === "report") && pub && !same(pub)) source = esc(endP(pub));
+
+  const lead = authors.length ? esc(endP(authorList(authors))) : "";
+  const parts = lead ? [lead, datePart, titlePart, source] : [titlePart, datePart, source];
+  const link = linkOf(c.doi_or_url);
+  const retrieve = c.changes_over_time === true && link && !/doi\.org/.test(link);
+  if (link) parts.push(retrieve ? `Retrieved ${esc(retrievedDate(c.accessed))}, from ${esc(link)}` : esc(link));
+  const html = parts.filter(Boolean).join(" ");
+
+  let who;
+  const shortT = title.split(/[:.?!]/)[0].split(/\s+/).slice(0, 5).join(" ");
+  if (!authors.length) who = italicTitle ? `<i>${esc(shortT)}</i>` : `“${esc(shortT)}”`;
+  else {
+    const last = a => esc(str(a.group) || str(a.family));
+    who = authors.length === 1 ? last(authors[0]) : authors.length === 2 ? `${last(authors[0])} &amp; ${last(authors[1])}` : `${last(authors[0])} et al.`;
+  }
+  return { html, retrieve, intext: `(${who}, ${esc(year)})`, sort: strip(html).toLowerCase(), kind: KINDS[type] };
+}
+
+/* ===================== Citation styles ===================== */
+const STYLES = {
+  apa:     { name: "APA 7",      chart: "APA 7",   list: "References",     cite: "In-text citation", copyCite: "Copy in-text" },
+  mla:     { name: "MLA 9",      chart: "MLA 9",   list: "Works Cited",    cite: "In-text citation", copyCite: "Copy in-text" },
+  chicago: { name: "Chicago 18", chart: "CHICAGO", list: "Bibliography",   cite: "Short note",       copyCite: "Copy note" },
+  harvard: { name: "Harvard",    chart: "HARVARD", list: "Reference list", cite: "In-text citation", copyCite: "Copy in-text" },
+  ieee:    { name: "IEEE",       chart: "IEEE",    list: "References",     cite: "In-text citation", copyCite: "Copy in-text" }
+};
+let style = "apa";
+try { const s = localStorage.getItem("cc-style"); if (s in STYLES) style = s; } catch {}
+
+const MON_MLA = ["Jan.","Feb.","Mar.","Apr.","May","June","July","Aug.","Sept.","Oct.","Nov.","Dec."];
+const MON_IEEE = ["Jan.","Feb.","Mar.","Apr.","May","Jun.","Jul.","Aug.","Sep.","Oct.","Nov.","Dec."];
+const QUOTED = ["journal", "news", "chapter", "web", "video"];
+const SMALL_WORDS = new Set(("a an the and but or nor for so yet as at by in of off on per to up via with from into onto over out than vs v " +
+  "about above across after against along among around before behind below beneath beside between beyond during except inside like near " +
+  "since through throughout toward towards under underneath until upon within without").split(" "));
+// Headline case for MLA and Chicago, from the sentence-case title (which keeps proper nouns and acronyms).
+function titleCase(t) {
+  const w = t.split(" ");
+  let start = true;
+  return w.map((word, i) => {
+    const last = i === w.length - 1;
+    const out = word.split("-").map((part, j) => {
+      const core = part.replace(/^[^A-Za-z]+/, "");
+      if (/[A-Z].*[A-Z]|^[a-z]+[A-Z]|\d/.test(core)) return part;
+      const lower = core.toLowerCase().replace(/[^a-z']/g, "");
+      const cap = (start && j === 0) || last || !SMALL_WORDS.has(lower);
+      return cap ? part.replace(/[A-Za-z]/, ch => ch.toUpperCase()) : part.toLowerCase();
+    }).join("-");
+    start = /[:?!—–]$/.test(word);
+    return out;
+  }).join(" ");
+}
+function shortTitle(t) {
+  const w = t.split(/[:.?!]/)[0].trim().split(/\s+/).filter(Boolean);
+  if (w.length <= 5) return w.join(" ");
+  const out = w.slice(0, 4);
+  while (out.length > 1 && SMALL_WORDS.has(out[out.length - 1].toLowerCase())) out.pop();
+  return out.join(" ");
+}
+const endQ = s => /[.?!]$/.test(s) ? s : s + ".";          // period inside quotes (US styles)
+const endC = s => /[.?!]$/.test(s) ? s : s + ",";          // comma inside quotes (IEEE)
+const fullName = a => str(a.group) || [str(a.given), str(a.family)].filter(Boolean).join(" ");
+const invName = a => str(a.group) || (str(a.given) ? `${str(a.family)}, ${str(a.given)}` : str(a.family));
+const lastName = a => str(a.group) || str(a.family);
+const join3 = (n, and) => n.length === 1 ? n[0] : n.length === 2 ? `${n[0]} ${and} ${n[1]}` : n.slice(0, -1).join(", ") + `, ${and} ` + n[n.length - 1];
+
+function prep(c) {
+  const type = c.type in KINDS ? c.type : "web";
+  const authors = (Array.isArray(c.authors) ? c.authors : []).filter(a => a && (str(a.group) || str(a.family)));
+  const title = str(c.title);
+  const m = +c.month, d = +c.day;
+  const link = linkOf(c.doi_or_url);
+  const isDoi = /doi\.org\//.test(link);
+  const edRaw = str(c.editors).replace(/\(\s*eds?\.?\s*\)/i, "").replace(/[,\s]+$/, "").trim();
+  const ed = str(c.edition).replace(/\D/g, "");
+  const acc = (() => { const a = str(c.accessed); const s = /^\d{4}-\d{2}-\d{2}$/.test(a) ? a + "T12:00:00" : a; return s && !isNaN(Date.parse(s)) ? new Date(s) : new Date(); })();
+  const cont = str(c.container);
+  return {
+    type, authors, title, titleT: titleCase(title), cont, year: str(c.year), month: m >= 1 && m <= 12 ? m : 0, day: d >= 1 && d <= 31 ? d : 0,
+    vol: str(c.volume), iss: str(c.issue), pages: str(c.pages).replace(/\s*[-–—]\s*/, "–"), pub: str(c.publisher),
+    edition: ed && ed !== "1" ? ed : "", book: str(c.book_title), eds: edRaw.replace(/\s*&\s*/g, " and "),
+    edCount: edRaw ? (/(&|\band\b|,)/.test(edRaw) ? 2 : 1) : 0,
+    link, isDoi, doi: isDoi ? link.replace(/^https:\/\/doi\.org\//, "") : "", acc,
+    sameAsAuthor: s => authors.length === 1 && str(authors[0].group).toLowerCase() === str(s).toLowerCase()
+  };
+}
+// Page ranges: MLA keeps the last two digits (263-91); Chicago uses its own abbreviation rules.
+function mlaPages(p) {
+  const m = p.match(/^(\d+)–(\d+)$/); if (!m) return p.replace("–", "-");
+  const [s, e] = [m[1], m[2]];
+  if (s.length !== e.length || s.length < 3) return `${s}-${e}`;
+  let k = 0; while (k < s.length && s[k] === e[k]) k++;
+  return `${s}-${e.slice(Math.min(k, s.length - 2))}`;
+}
+function chiPages(p) {
+  const m = p.match(/^(\d+)–(\d+)$/); if (!m) return p;
+  const [s, e] = [m[1], m[2]], n = +s;
+  if (n < 100 || n % 100 === 0 || s.length !== e.length) return `${s}–${e}`;
+  let k = 0; while (k < s.length && s[k] === e[k]) k++;
+  const keep = Math.max(s.length - k, n % 100 < 10 ? 1 : 2);
+  return `${s}–${e.slice(s.length - keep)}`;
+}
+const longDate = (p, opt) => [p.month ? MONTHS[p.month - 1] + (p.day ? " " + p.day : "") : "", p.year].filter(Boolean).join(p.day ? ", " : " ");
+const dmy = (y, m, d, months) => [d || "", m ? months[m - 1] : "", y].filter(Boolean).join(" ");
+const sentence = parts => parts.filter(Boolean).join(" ");
+
+function fmtMLA(c) {
+  const p = prep(c), A = p.authors;
+  const auth = !A.length ? "" : A.length === 1 ? invName(A[0]) : A.length === 2 ? `${invName(A[0])}, and ${fullName(A[1])}` : `${invName(A[0])}, et al`;
+  const vid = p.type === "video";
+  const title = p.titleT ? (QUOTED.includes(p.type) ? `“${esc(endQ(p.titleT))}”` : `<i>${esc(p.titleT)}</i>${/[?!]$/.test(p.titleT) ? "" : "."}`) : "";
+  const date = dmy(p.year, p.month, p.day, MON_MLA);
+  const where = p.isDoi ? p.link : p.link.replace(/^https?:\/\//, "");
+  let el = [];
+  if (p.type === "journal") el = [p.cont && `<i>${esc(p.cont)}</i>`, p.vol && `vol. ${esc(p.vol)}`, p.iss && `no. ${esc(p.iss)}`, esc(date), p.pages && `pp. ${esc(mlaPages(p.pages))}`];
+  else if (p.type === "news") el = [p.cont && `<i>${esc(p.cont)}</i>`, esc(date), p.pages && `p. ${esc(p.pages)}`];
+  else if (p.type === "web") el = [p.cont && !p.sameAsAuthor(p.cont) && `<i>${esc(p.cont)}</i>`, esc(date)];
+  else if (vid) el = [p.cont && `<i>${esc(p.cont)}</i>`, A.length && `uploaded by ${esc(A.map(fullName).join(" and "))}`, esc(date)];
+  else if (p.type === "book") el = [p.edition && `${ordinal(p.edition)} ed.`, p.pub && !p.sameAsAuthor(p.pub) && esc(p.pub), esc(p.year)];
+  else if (p.type === "chapter") el = [p.book && `<i>${esc(titleCase(p.book))}</i>`, p.eds && `edited by ${esc(p.eds)}`, p.pub && esc(p.pub), esc(p.year), p.pages && `pp. ${esc(mlaPages(p.pages))}`];
+  else el = [p.pub && !p.sameAsAuthor(p.pub) && esc(p.pub), esc(p.year)];
+  if (where) el.push(esc(where));
+  const cont = el.filter(Boolean).join(", ");
+  const accessed = ["web", "video"].includes(p.type) && !p.year ? `Accessed ${dmy(p.acc.getFullYear(), p.acc.getMonth() + 1, p.acc.getDate(), MON_MLA)}.` : "";
+  const html = sentence([!vid && auth ? esc(endP(auth)) : "", title, cont ? cont + "." : "", accessed]);
+  const who = vid || !A.length ? (QUOTED.includes(p.type) ? `“${esc(titleCase(shortTitle(p.title)))}”` : `<i>${esc(titleCase(shortTitle(p.title)))}</i>`)
+    : A.length === 1 ? esc(lastName(A[0])) : A.length === 2 ? `${esc(lastName(A[0]))} and ${esc(lastName(A[1]))}` : `${esc(lastName(A[0]))} et al.`;
+  return { html, intext: `(${who})`, note: accessed ? "MLA suggests the date you viewed a page that has no publication date. Clear Cite used today." : "Add a page number when you quote, e.g. (Smith 42)." };
+}
+
+function fmtChicago(c) {
+  const p = prep(c), A = p.authors;
+  const names = A.length > 6 ? [...A.slice(0, 3)] : A;
+  const list = names.map((a, i) => i === 0 ? invName(a) : fullName(a));
+  const auth = !list.length ? "" : list.length === 1 ? list[0] : (A.length > 6 ? list.join(", ") + ", et al" : list.length === 2 ? `${list[0]}, and ${list[1]}` : list.slice(0, -1).join(", ") + ", and " + list[list.length - 1]);
+  const title = p.titleT ? (QUOTED.includes(p.type) ? `“${esc(endQ(p.titleT))}”` : `<i>${esc(p.titleT)}</i>${/[?!]$/.test(p.titleT) ? "" : "."}`) : "";
+  const date = longDate(p);
+  const accessed = ["web", "video"].includes(p.type) && !p.year ? `Accessed ${MONTHS[p.acc.getMonth()]} ${p.acc.getDate()}, ${p.acc.getFullYear()}.` : "";
+  let body = "";
+  if (p.type === "journal") body = (p.cont ? `<i>${esc(p.cont)}</i>` : "") + (p.vol ? " " + esc(p.vol) : "") + (p.iss ? `, no. ${esc(p.iss)}` : "") + (date ? ` (${esc(date)})` : "") + (p.pages ? `: ${esc(chiPages(p.pages))}` : "") + ".";
+  else if (p.type === "news") body = [p.cont && `<i>${esc(p.cont)}</i>`, esc(date)].filter(Boolean).join(", ") + ".";
+  else if (p.type === "web") body = [p.cont && !p.sameAsAuthor(p.cont) && esc(p.cont), esc(date)].filter(Boolean).join(", ") + (p.cont || date ? "." : "");
+  else if (p.type === "video") body = [p.cont ? esc(p.cont) + " video" : "Video", esc(date)].filter(Boolean).join(", ") + ".";
+  else if (p.type === "chapter") body = "In " + [p.book && `<i>${esc(titleCase(p.book))}</i>`, p.eds && `edited by ${esc(p.eds)}`, p.pages && esc(chiPages(p.pages))].filter(Boolean).join(", ") + ". " + [p.pub && esc(p.pub), esc(p.year)].filter(Boolean).join(", ") + ".";
+  else body = (p.edition ? `${ordinal(p.edition)} ed. ` : "") + [p.pub && !p.sameAsAuthor(p.pub) && esc(p.pub), esc(p.year)].filter(Boolean).join(", ") + ".";
+  if (body === ".") body = "";
+  const html = sentence([auth ? esc(endP(auth)) : "", title, body, accessed, p.link ? esc(p.link) + "." : ""]);
+  const st = titleCase(shortTitle(p.title));
+  const tShort = QUOTED.includes(p.type) ? `“${esc(st)}.”` : `<i>${esc(st)}</i>.`;
+  const who = !A.length ? "" : A.length === 1 ? lastName(A[0]) : A.length === 2 ? `${lastName(A[0])} and ${lastName(A[1])}` : A.length === 3 ? `${lastName(A[0])}, ${lastName(A[1])}, and ${lastName(A[2])}` : `${lastName(A[0])} et al.`;
+  return { html, intext: (who ? esc(who) + ", " : "") + tShort, note: "Put the page number before the final period when you cite a specific page, e.g. Smith, “Short Title,” 42." };
+}
+
+function fmtHarvard(c) {
+  const p = prep(c), A = p.authors;
+  const hName = a => str(a.group) || (str(a.given) ? `${str(a.family)}, ${initials(a.given).replace(/\s+/g, "")}` : str(a.family));
+  const auth = !A.length ? "" : A.length >= 4 ? `${hName(A[0])} et al.` : join3(A.map(hName), "and");
+  const yr = `(${esc(p.year || "no date")})`;
+  const quoted = ["journal", "news", "chapter"].includes(p.type);
+  const t = p.title ? (quoted ? `‘${esc(p.title)}’` : `<i>${esc(p.title)}</i>`) : "";
+  const pg = p.pages ? (/–/.test(p.pages) ? `pp. ${esc(p.pages)}` : `p. ${esc(p.pages)}`) : "";
+  const today = dmy(p.acc.getFullYear(), p.acc.getMonth() + 1, p.acc.getDate(), MONTHS);
+  const avail = p.link ? `Available at: ${esc(p.link)}` + (p.isDoi ? "." : ` (Accessed: ${esc(today)}).`) : "";
+  const lead = auth ? `${esc(auth)} ${yr}` : `${t} ${yr}`;
+  const tt = auth ? t : "";
+  let rest = "";
+  if (p.type === "journal") rest = [tt, p.cont && `<i>${esc(p.cont)}</i>`, p.vol && esc(p.vol) + (p.iss ? `(${esc(p.iss)})` : ""), pg].filter(Boolean).join(", ") + ".";
+  else if (p.type === "news") rest = [tt, p.cont && `<i>${esc(p.cont)}</i>`, (p.day || p.month) && esc(dmy("", p.month, p.day, MONTHS)), pg].filter(Boolean).join(", ") + ".";
+  else if (p.type === "chapter") rest = (tt ? tt + ", " : "") + "in " + (p.eds ? `${esc(p.eds)} (${p.edCount > 1 ? "eds" : "ed."}) ` : "") + (p.book ? `<i>${esc(p.book)}</i>` : "") + ". " + [p.pub && esc(p.pub), pg].filter(Boolean).join(", ") + ".";
+  else if (p.type === "video") rest = (tt ? tt + " " : "") + "[Video]." ;
+  else rest = (tt ? tt + "." : "") + (p.edition ? ` ${ordinal(p.edition)} edn.` : "") + (["book", "report"].includes(p.type) && p.pub && !p.sameAsAuthor(p.pub) ? ` ${esc(endP(p.pub))}` : "");
+  rest = rest.replace(/^\.\s*/, "").replace(/^, /, "");
+  const html = sentence([lead, rest, avail]);
+  const who = !A.length ? `<i>${esc(shortTitle(p.title))}</i>` : A.length >= 4 ? `${esc(lastName(A[0]))} et al.` : join3(A.map(a => esc(lastName(a))), "and");
+  return { html, intext: `(${who}, ${esc(p.year || "no date")})`, note: p.link && !p.isDoi ? "Harvard wants the date you viewed online sources. Clear Cite used today." : "" };
+}
+
+function fmtIEEE(c, n) {
+  const p = prep(c), A = p.authors;
+  const iName = a => str(a.group) || [initials(a.given), str(a.family)].filter(Boolean).join(" ");
+  const auth = !A.length ? "" : A.length > 6 ? `${iName(A[0])} <i>et al.</i>` : A.length <= 2 ? A.map(iName).join(" and ") : A.slice(0, -1).map(iName).join(", ") + ", and " + iName(A[A.length - 1]);
+  const t = p.title ? (p.type === "book" ? `<i>${esc(p.title)}</i>` : `“${esc(endC(p.title))}”`) : "";
+  const mdy = [p.month ? MON_IEEE[p.month - 1] : "", p.day ? p.day + "," : "", p.year].filter(Boolean).join(" ");
+  const acc = `Accessed: ${MON_IEEE[p.acc.getMonth()]} ${p.acc.getDate()}, ${p.acc.getFullYear()}.`;
+  const online = p.link && !p.isDoi ? `[Online]. Available: ${esc(p.link)}` : "";
+  const doi = p.isDoi ? `doi: ${esc(p.doi)}` : "";
+  const pg = p.pages ? (/–/.test(p.pages) ? `pp. ${esc(p.pages)}` : `p. ${esc(p.pages)}`) : "";
+  let html = auth ? esc(auth).replace(/&lt;i&gt;et al\.&lt;\/i&gt;/, "<i>et al.</i>") + ", " : "";
+  if (p.type === "journal") html += [t, p.cont && `<i>${esc(p.cont)}</i>,`, p.vol && `vol. ${esc(p.vol)},`, p.iss && `no. ${esc(p.iss)},`, pg && pg + ",", esc(mdy) + (doi ? "," : "."), doi && doi + ".", online].filter(Boolean).join(" ");
+  else if (p.type === "book") html += [t + (p.edition ? "," : "."), p.edition && `${ordinal(p.edition)} ed.`, [p.pub && esc(p.pub), esc(p.year)].filter(Boolean).join(", ") + ".", doi && doi + ".", online].filter(Boolean).join(" ");
+  else if (p.type === "chapter") html += [t, p.book && `in <i>${esc(p.book)}</i>,`, p.eds && `${esc(p.eds)}, ${p.edCount > 1 ? "Eds" : "Ed"}.`, [p.pub && esc(p.pub), esc(p.year), pg].filter(Boolean).join(", ") + ".", doi && doi + ".", online].filter(Boolean).join(" ");
+  else if (p.type === "news") html += [t, p.cont && `<i>${esc(p.cont)}</i>,`, esc(mdy) + ".", online].filter(Boolean).join(" ");
+  else if (p.type === "report") html += [t, [p.pub && !p.sameAsAuthor(p.pub) && esc(p.pub), esc(p.year)].filter(Boolean).join(", ") + ".", doi && doi + ".", online].filter(Boolean).join(" ");
+  else html += [t, p.cont && !p.sameAsAuthor(p.cont) && esc(p.cont) + (p.year ? "," : "."), p.year && esc(mdy) + ".", p.link && !p.isDoi && acc, p.type === "video" ? online.replace("[Online]", "[Online Video]") : online, doi && doi + "."].filter(Boolean).join(" ");
+  html = html.replace(/,\s*\./g, ".").replace(/\s+/g, " ").trim();
+  return { html: `[${n}] ` + html, body: html, intext: `[${n}]`, note: "IEEE numbers sources in the order you first cite them. The number updates as you add sources to your list." };
+}
+
+function fmt(c, n) {
+  if (style === "apa") { const r = format(c); return { html: r.html, intext: r.intext, retrieve: r.retrieve, note: "" }; }
+  if (style === "mla") return fmtMLA(c);
+  if (style === "chicago") return fmtChicago(c);
+  if (style === "harvard") return fmtHarvard(c);
+  return fmtIEEE(c, n || 1);
+}
+/* ========================================================== */
+
+let current = null, currentC = null, currentLabel = "";
+const keyOf = c => JSON.stringify([c.type, c.title, (c.authors || []).map(a => a.family || a.group), c.year, c.doi_or_url, c.container, c.pages]);
+function ieeeNum(c) { const k = keyOf(c); const i = saved.findIndex(x => x.c && keyOf(x.c) === k); return i >= 0 ? i + 1 : saved.length + 1; }
+function show(c, label) {
+  currentC = c; currentLabel = label || "";
+  current = fmt(c, ieeeNum(c));
+  current.kind = KINDS[c.type in KINDS ? c.type : "web"];
+  $("ref").innerHTML = current.html;
+  $("intext").innerHTML = current.intext;
+  $("kind").textContent = (label ? label + " · " : "") + STYLES[style].name + " · " + current.kind;
+  const notes = [];
+  if (current.retrieve) notes.push("This page is meant to change over time, so APA wants the date you viewed it. Clear Cite used " + (str(c.accessed) ? "the date you gave" : "today") + ".");
+  if (current.note) notes.push(current.note);
+  $("retrieved").hidden = !notes.length;
+  $("retrieved").textContent = notes.join(" ");
+  const miss = (Array.isArray(c.missing) ? c.missing : []).map(str).filter(Boolean);
+  $("missing").hidden = !miss.length;
+  $("missing").textContent = miss.length ? "Not found in what you pasted: " + miss.join(", ") + ". Add it and run again if you have it." : "";
+}
+
+const PROMPT = text => `You extract citation details for an academic reference (it will be formatted in APA, MLA, Chicago, Harvard or IEEE). The user pasted the text below about ONE source; it may be messy, partial, out of order or copied from a web page.
+
+Return ONLY a JSON object with these keys (use null when unknown; never invent details that are not in the text, except you may infer the source type and fix capitalization):
+{
+ "type": "journal" | "web" | "news" | "book" | "chapter" | "video" | "report",
+ "authors": [ {"family": "Smith", "given": "Jane Ann"} or {"group": "World Health Organization"} ],  // in the order given; people as family + given names (initials are fine)
+ "year": "2021" or null,
+ "month": 1-12 or null,
+ "day": 1-31 or null,
+ "title": "Title in APA sentence case: capitalize only the first word, the first word after a colon or dash, and proper nouns/acronyms",
+ "container": "Journal, newspaper, magazine or website name in title case, or null",
+ "volume": null, "issue": null, "pages": "e.g. 263-291 or null",
+ "publisher": null, "edition": null,
+ "book_title": null, "editors": "for chapters: 'J. Smith (Ed.)' style or null",
+ "doi_or_url": "DOI if present (preferred), else the URL, else null",
+ "changes_over_time": true only if the content is designed to keep changing and is not archived (a dictionary or encyclopedia entry that updates, a wiki page, a social media profile, a live data or statistics page, a map); false for ordinary articles, news stories, blog posts, reports, books and videos,
+ "accessed": "the access or retrieval date if the text mentions one, as YYYY-MM-DD, else null",
+ "missing": ["short plain-English names of reference elements this type needs that the text lacks, e.g. 'publication date', 'page range'"]
+}
+For YouTube use type "video" with the channel as a {"group"} author and "YouTube" as container. If a web page has no person author, use the organization as a {"group"} author.
+
+Pasted text:
+"""
+${text.slice(0, 8000)}
+"""`;
+
+let sample = null, ctl = null, blocked = false;
+let downloadsNs = null;
+(async () => {
+  try { sample = await window.claude?.use("sample"); } catch {}
+  try { downloadsNs = await window.claude?.use("downloads"); } catch {}
+  if (!sample) noClaude();
+})();
+let mode = "online", userChose = false;
+function setMode(m) {
+  mode = m;
+  $("m-online").setAttribute("aria-pressed", m === "online");
+  $("m-manual").setAttribute("aria-pressed", m === "manual");
+  $("manual").hidden = m !== "manual";
+  $("go").hidden = m !== "online";
+  userChose = userChose || m !== mode;
+  
+  $("online-note").hidden = !(m === "online" && !sample);
+  $("err").hidden = true;
+  $("raw").setAttribute("aria-label", m === "online" ? "Source details" : "Paste source details (optional)");
+}
+function noClaude() {
+  // Not inside Claude (for example on clearcite.collegetowns.org): offer the two options instead of an error.
+  $("go").disabled = true;
+  // Without Claude, start people on the free lookup; the Online card still explains how to get Claude's version.
+  if (!userChose) setMode("manual"); else if (mode === "online") $("online-note").hidden = false;
+}
+$("m-online").onclick = () => { userChose = true; setMode("online"); };
+$("m-manual").onclick = () => { userChose = true; setMode("manual"); };
+$("to-manual").onclick = e => { e.preventDefault(); setMode("manual"); };
+
+/* ---- Fill it in yourself ---- */
+const CONT_LBL = { journal: "Journal name", news: "Newspaper or magazine", web: "Website name", video: "Platform (e.g. YouTube)" };
+$("f-type").onchange = () => { const t = $("f-type").value; $("form").dataset.type = t; $("f-cont-lbl").textContent = CONT_LBL[t] || "Container"; };
+function guess(text) {
+  const g = {};
+  const doi = text.match(/\b(10\.\d{4,9}\/[^\s"<>]+[^\s"<>.,;)])/);
+  if (doi) g.link = doi[1];
+  else { const url = text.match(/\bhttps?:\/\/[^\s"<>]+[^\s"<>.,;)]/i) || text.match(/\bwww\.[^\s"<>]+[^\s"<>.,;)]/i); if (url) g.link = url[0]; }
+  const scrub = text.replace(/\b10\.\d{4,9}\/\S+/g, " ").replace(/\b(https?:\/\/|www\.)\S+/gi, " ");
+  const yr = scrub.match(/\b(19|20)\d{2}\b/); if (yr) g.year = yr[0];
+  const vi = scrub.match(/\b(\d{1,4})\s*\((\d{1,4})\)/);
+  if (vi) { g.volume = vi[1]; g.issue = vi[2]; }
+  const vol = scrub.match(/\bvol(?:ume)?\.?\s*(\d+)/i); if (vol) g.volume = vol[1];
+  const iss = scrub.match(/\b(?:no|issue|iss|nr)\.?\s*(\d+)/i); if (iss) g.issue = iss[1];
+  const pg = scrub.match(/\bpp?\.?\s*(\d+\s*[-–—]\s*\d+)/i) || scrub.match(/\b(\d{1,5}\s*[–—-]\s*\d{1,5})\b(?!\s*\()/);
+  if (pg && !/^(19|20)\d{2}\s*[-–—]\s*(19|20)\d{2}$/.test(pg[1])) g.pages = pg[1].replace(/\s/g, "");
+  const first = text.split(/\n/).map(l => l.trim()).find(l => l && !/^(doi|https?:|www\.)/i.test(l) && /[a-z]{3}/i.test(l));
+  if (first && first.length < 300) g.title = first.charAt(0).toUpperCase() + first.slice(1);
+  if (g.link && !doi) g.type = /youtube\.com|youtu\.be|vimeo/i.test(g.link) ? "video" : "web";
+  return g;
+}
+$("fill").onclick = () => {
+  const text = $("raw").value.trim();
+  if (!text) { $("raw").focus(); status("Paste what you have about the source first."); return; }
+  const g = guess(text);
+  const set = (id, v) => { if (v && !$(id).value.trim()) $(id).value = v; };
+  if (g.type) { $("f-type").value = g.type; $("f-type").onchange(); }
+  set("f-link", g.link); set("f-year", g.year); set("f-volume", g.volume); set("f-issue", g.issue); set("f-pages", g.pages); set("f-title", g.title);
+  const n = Object.keys(g).length;
+  status(n ? "Filled what Clear Cite could spot. Check every field, then add the authors." : "Couldn't spot anything automatically. Type the details in below.");
+};
+function fromForm() {
+  const v = id => $(id).value.trim();
+  const type = v("f-type");
+  const authors = v("f-authors").split(/\n+/).map(l => l.trim()).filter(Boolean).map(l => {
+    const i = l.indexOf(",");
+    return i > 0 ? { family: l.slice(0, i).trim(), given: l.slice(i + 1).trim() } : { group: l };
+  });
+  const c = { type, authors, year: v("f-year") || null, month: v("f-month") || null, day: v("f-day") || null, title: v("f-title"),
+    container: v("f-container") || null, volume: v("f-volume") || null, issue: v("f-issue") || null, pages: v("f-pages") || null,
+    publisher: v("f-publisher") || null, edition: v("f-edition") || null, book_title: v("f-book") || null, editors: v("f-editors") || null,
+    doi_or_url: v("f-link") || null, changes_over_time: type === "web" && $("f-changes").checked, accessed: null };
+  const need = { journal: [["year","publication date"],["container","journal name"],["volume","volume"],["pages","page range"]],
+    web: [["year","publication date (n.d. is fine if there is none)"],["doi_or_url","URL"]], news: [["year","publication date"],["container","publication name"]],
+    book: [["year","publication year"],["publisher","publisher"]], chapter: [["year","publication year"],["book_title","book title"],["pages","page range"],["publisher","publisher"]],
+    report: [["year","publication year"],["publisher","publisher or organization"]], video: [["year","upload date"],["doi_or_url","URL"]] }[type] || [];
+  c.missing = [...(authors.length ? [] : ["author"]), ...need.filter(([k]) => !c[k]).map(([, n]) => n)];
+  return c;
+}
+$("go-manual").onclick = () => {
+  const c = fromForm();
+  if (!c.title && !c.authors.length) { $("f-title").focus(); status("Add at least a title or an author."); return; }
+  show(c);
+  $("ref").scrollIntoView({ behavior: "smooth", block: "center" });
+};
+
+
+/* ---- Free lookup (Crossref) ---- */
+const CR = "https://api.crossref.org/works";
+const CR_FIELDS = "DOI,title,subtitle,author,editor,issued,published,container-title,volume,issue,page,publisher,type,edition-number";
+const CR_TYPE = { "journal-article": "journal", "book": "book", "monograph": "book", "edited-book": "book", "reference-book": "book",
+  "book-chapter": "chapter", "book-section": "chapter", "book-part": "chapter", "reference-entry": "chapter", "proceedings-article": "chapter",
+  "report": "report", "report-component": "report", "posted-content": "report", "dissertation": "report" };
+const MINOR = new Set("a an the and but or nor for so yet as at by in of off on per to up via with from into onto over than vs".split(" "));
+const clean = t => { const d = document.createElement("div"); d.innerHTML = String(t || ""); return d.textContent.replace(/\s+/g, " ").trim(); };
+// Crossref titles are often Title Case; APA wants sentence case. Keep acronyms and words like iPhone; people must re-capitalize names of people and places.
+function sentenceCase(t) {
+  const words = t.split(" ");
+  const caps = words.filter(w => /^[A-Z]/.test(w) && !MINOR.has(w.toLowerCase())).length;
+  const big = words.filter(w => /^[A-Za-z]/.test(w) && !MINOR.has(w.toLowerCase())).length;
+  if (big < 3 || caps / big < 0.75) return t.charAt(0).toUpperCase() + t.slice(1); // already sentence case
+  let start = true;
+  return words.map(w => {
+    const core = w.replace(/^[^A-Za-z]+/, "");
+    let out = w;
+    if (!(/[A-Z].*[A-Z]/.test(core) || /^[a-z]+[A-Z]/.test(core) || /\d/.test(core))) out = start ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase().replace(/^([^a-z]*)([a-z])/, (m, p, c) => p + c) : w.toLowerCase();
+    if (start && /^[^A-Za-z]*[a-z]/.test(out)) out = out.replace(/[a-z]/, c => c.toUpperCase());
+    start = /[:?!—–]$/.test(w) || w === "-" || w === "—" || w === "–";
+    return out;
+  }).join(" ");
+}
+function fromCrossref(w) {
+  const type = CR_TYPE[w.type] || (w["container-title"]?.length ? "journal" : "report");
+  const person = a => a.family ? { family: clean(a.family), given: clean(a.given) } : { group: clean(a.name) };
+  const dp = (w.issued || w.published || {})["date-parts"]?.[0] || [];
+  let title = clean(w.title?.[0]);
+  if (w.subtitle?.[0] && !title.includes(":")) title += ": " + clean(w.subtitle[0]);
+  const cont = clean(w["container-title"]?.[0]);
+  const eds = (w.editor || []).filter(e => e.family);
+  const edTxt = eds.length ? eds.map(e => `${initials(e.given)} ${clean(e.family)}`.trim()).join(eds.length > 2 ? ", " : " & ").replace(/, ([^,]*)$/, ", & $1") + (eds.length > 1 ? " (Eds.)" : " (Ed.)") : "";
+  return {
+    type, authors: (w.author || []).map(person), year: dp[0] ? String(dp[0]) : null, month: dp[1] || null, day: dp[2] || null,
+    title: sentenceCase(title), container: type === "chapter" ? null : cont || null, book_title: type === "chapter" ? cont || null : null,
+    volume: w.volume || null, issue: w.issue || null, pages: w.page || null, editors: edTxt || null,
+    publisher: ["book", "chapter", "report"].includes(type) ? clean(w.publisher) || null : null,
+    edition: w["edition-number"] || null, doi_or_url: w.DOI || null
+  };
+}
+function toForm(c) {
+  $("f-type").value = c.type; $("f-type").onchange();
+  const set = (id, v) => $(id).value = v == null ? "" : v;
+  set("f-authors", c.authors.map(a => a.group || (a.given ? `${a.family}, ${a.given}` : a.family)).join("\n"));
+  set("f-year", c.year); set("f-month", ""); set("f-day", ""); set("f-title", c.title); set("f-container", c.container);
+  set("f-volume", c.volume); set("f-issue", c.issue); set("f-pages", c.pages); set("f-book", c.book_title); set("f-editors", c.editors);
+  set("f-publisher", c.publisher); set("f-edition", c.edition); set("f-link", c.doi_or_url); $("f-changes").checked = false;
+}
+let hits = [];
+function pick(i) {
+  const c = fromCrossref(hits[i]);
+  toForm(c);
+  const alts = hits.map((w, j) => j === i ? "" : `<button type="button" class="ghost" data-hit="${j}">${esc(clean(w.title?.[0]) || "Untitled")}${(w.issued?.["date-parts"]?.[0]?.[0]) ? " (" + w.issued["date-parts"][0][0] + ")" : ""}</button>`).join("");
+  $("found").hidden = false;
+  $("found").innerHTML = `<p><b>Found:</b> ${esc(c.title)}${c.authors.length ? " by " + esc(c.authors.slice(0, 3).map(a => a.family || a.group).join(", ")) + (c.authors.length > 3 ? " and others" : "") : ""}. The details are in the form below. Check the title's capitals: Crossref uses title case, and Clear Cite can't tell which words are names.</p>`
+    + (alts ? `<p>Not the right one? Try:</p><div class="alts">${alts}</div>` : "");
+  $("go-manual").click();
+}
+$("found").addEventListener("click", e => { const b = e.target.closest("[data-hit]"); if (b) pick(+b.dataset.hit); });
+async function crossref(url) {
+  const r = await fetch(url, { headers: { Accept: "application/json" } });
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error("http " + r.status);
+  return (await r.json()).message;
+}
+$("lookup").onclick = async () => {
+  const text = $("raw").value.trim();
+  if (!text) { $("raw").focus(); status("Paste a DOI, a title or whatever you have about the source first."); return; }
+  const btn = $("lookup"); btn.disabled = true; btn.textContent = "Looking…";
+  $("found").hidden = false; $("found").innerHTML = '<p class="thinking">Searching Crossref…</p>';
+  try {
+    const doi = (text.match(/\b(10\.\d{4,9}\/[^\s"<>]+[^\s"<>.,;)])/) || [])[1];
+    hits = [];
+    if (doi) { const w = await crossref(`${CR}/${encodeURIComponent(doi)}`); if (w) hits = [w]; }
+    if (!hits.length) {
+      const q = text.replace(/\b(10\.\d{4,9}\/\S+|https?:\/\/\S+|www\.\S+)/gi, " ").replace(/\s+/g, " ").trim().slice(0, 400);
+      if (q.length > 3) { const m = await crossref(`${CR}?rows=4&select=${CR_FIELDS}&query.bibliographic=${encodeURIComponent(q)}`); hits = (m && m.items || []).filter(w => w.title?.length); }
+    }
+    if (!hits.length) {
+      $("found").innerHTML = "<p>Nothing in Crossref matched. That's normal for webpages, news stories and videos. Fill in the form below instead. “Just fill in what I pasted” can pick up the link, year and pages for you.</p>";
+      return;
+    }
+    pick(0);
+  } catch (e) {
+    $("found").innerHTML = "<p>Couldn't reach Crossref from here" + (window.claude ? " (Claude's viewer blocks outside lookups, so use Online analysis instead)" : ". Check your internet connection and try again") + ", or fill in the form below.</p>";
+  } finally { btn.disabled = false; btn.textContent = "Look it up"; }
+};
+
+/* ---- Download the reference list ---- */
+async function saveFile(filename, data, mime) {
+  if (downloadsNs) { try { await downloadsNs.save({ filename, data }); return true; } catch {} }
+  try {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([data], { type: mime })); a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    return true;
+  } catch { status("Downloading isn't allowed in this view. Use Copy whole list instead."); return false; }
+}
+if (IS_LOCAL) $("getapp-row").hidden = true;
+$("getapp").onclick = async () => {
+  if (await saveFile("Clear Cite.html", APP_SOURCE, "text/html")) status("Downloaded. Open Clear Cite.html any time, even offline.");
+};
+$("dl-word").onclick = async () => {
+  const T = STYLES[style].list;
+  const body = listItems().map(r => `<p style="margin:0 0 0 .5in;text-indent:-.5in;line-height:200%">${r.html}</p>`).join("");
+  const doc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${T}</title><style>body{font-family:"Times New Roman",serif;font-size:12pt}</style></head><body><p style="text-align:center;font-weight:${style === "mla" ? "normal" : "bold"};line-height:200%;margin:0">${T}</p>${body}</body></html>`;
+  if (await saveFile(T.toLowerCase().replace(/\s+/g, "-") + ".doc", doc, "application/msword")) status("Word file downloaded, with italics and hanging indents.");
+};
+$("dl-txt").onclick = async () => {
+  const T = STYLES[style].list;
+  if (await saveFile(T.toLowerCase().replace(/\s+/g, "-") + ".txt", T + "\n\n" + listItems().map(r => strip(r.html)).join("\n\n") + "\n", "text/plain")) status("Text file downloaded. Re-add italics by hand.");
+};
+
+const ERR = {
+  not_granted: "Allow this page to use Claude to make citations.",
+  rate_limited: "Too many requests just now. Wait a minute and try again.",
+  session_expired: "Sign in to Claude again, then try once more.",
+  invalid_json: "Claude's answer came back garbled. Click Make citation to try again.",
+  refused: "Claude couldn't work with that text. Try pasting just the source details.",
+  empty_completion: "Claude returned nothing. Try pasting a bit more about the source."
+};
+
+async function go() {
+  const text = $("raw").value.trim();
+  if (!text) { $("raw").focus(); return; }
+  if (!sample) return noClaude();
+  ctl?.abort(); ctl = new AbortController();
+  $("err").hidden = true;
+  $("go").disabled = true; $("go").textContent = "Working…";
+  $("ref").innerHTML = '<span class="thinking">Adjusting the lens…</span>';
+  $("intext").textContent = ""; $("missing").hidden = true; $("kind").textContent = "…";
+  try {
+    const c = await sample.json(PROMPT(text), { signal: ctl.signal });
+    if (!c || typeof c !== "object" || (!str(c.title) && !(c.authors || []).length)) throw { code: "empty_completion" };
+    show(c);
+  } catch (e) {
+    if (e && e.code === "cancelled") return;
+    $("err").hidden = false;
+    $("err").textContent = ERR[e && e.code] || "Something went wrong reaching Claude. Click Make citation to try again.";
+    if (e && ["not_granted", "sampling_disabled", "not_declared", "capability_disabled"].includes(e.code)) blocked = true;
+    $("ref").innerHTML = ""; $("kind").textContent = "—";
+  } finally {
+    $("go").disabled = blocked || !sample;
+    $("go").textContent = "Make citation";
+  }
+}
+
+async function copy(html, label) {
+  const text = strip(html);
+  try {
+    if (window.ClipboardItem && navigator.clipboard.write) {
+      await navigator.clipboard.write([new ClipboardItem({
+        "text/html": new Blob([`<span style="font-family:'Times New Roman',serif">${html}</span>`], { type: "text/html" }),
+        "text/plain": new Blob([text], { type: "text/plain" })
+      })]);
+    } else await navigator.clipboard.writeText(text);
+    status(`${label} copied. Italics come along when you paste into Word or Google Docs.`);
+  } catch {
+    try { await navigator.clipboard.writeText(text); status(`${label} copied as plain text. Re-add italics by hand.`); }
+    catch {
+      const r = document.createRange(); r.selectNodeContents($("ref")); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      status("Copying is blocked here. The reference is selected; press Ctrl+C or ⌘C.");
+    }
+  }
+}
+let st; function status(m) { $("status").textContent = m; clearTimeout(st); st = setTimeout(() => $("status").textContent = "", 5000); }
+
+let saved = [];
+try { saved = JSON.parse(localStorage.getItem("cc-list") || "null") || JSON.parse(localStorage.getItem("apa-list") || "[]"); } catch {}
+function persist() { try { localStorage.setItem("cc-list", JSON.stringify(saved)); } catch {} }
+const sortKey = html => strip(html).toLowerCase().replace(/^[^a-z0-9]+/, "").replace(/^(the|a|an) /, "");
+function listItems() {
+  // Each saved source keeps its details, so the list re-formats when the style changes. IEEE keeps the order you added sources; the rest are alphabetical.
+  const rows = saved.map((x, i) => {
+    if (!x.c) return { i, html: x.html + (style === "apa" ? "" : ' <span class="legacy">(saved before styles were added, so it stays in APA: remove it and add it again to change it)</span>'), sort: sortKey(x.html) };
+    const r = fmt(x.c, i + 1);
+    return { i, html: r.html, sort: sortKey(r.html) };
+  });
+  if (style !== "ieee") rows.sort((a, b) => a.sort.localeCompare(b.sort));
+  return rows;
+}
+function renderList() {
+  $("list-title").textContent = STYLES[style].list;
+  $("list").innerHTML = listItems().map(r => `<li><p class="ref${style === "ieee" ? " num" : ""}">${r.html}</p><button type="button" class="x" data-i="${r.i}" aria-label="Remove">×</button></li>`).join("");
+  $("empty").hidden = saved.length > 0;
+  $("list-btns").hidden = saved.length === 0;
+  $("empty").textContent = style === "ieee" ? "Citations you add appear here, numbered in the order you add them." : "Citations you add appear here in alphabetical order, ready to paste into your paper.";
+}
+$("list").addEventListener("click", e => { const b = e.target.closest(".x"); if (!b) return; saved.splice(+b.dataset.i, 1); persist(); renderList(); });
+
+$("go").onclick = go;
+$("raw").addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") (mode === "online" ? go() : $("lookup").click()); });
+$("clear").onclick = () => { $("raw").value = ""; $("raw").focus(); };
+$("copy").onclick = () => current && current.html && copy(current.html, "Reference");
+$("copy-in").onclick = () => current && copy(current.intext, STYLES[style].cite);
+$("save").onclick = () => {
+  if (!current || !current.html) return;
+  if (saved.some(x => x.c && keyOf(x.c) === keyOf(currentC))) return status("That one is already in your list.");
+  saved.push({ c: currentC }); persist(); renderList(); show(currentC, currentLabel); status("Added to your " + STYLES[style].list.toLowerCase() + ".");
+};
+$("copy-all").onclick = () => copy(listItems().map(r => `<p style="padding-left:0.5in;text-indent:-0.5in;line-height:2;margin:0">${r.html}</p>`).join(""), STYLES[style].list);
+
+function setStyle(k) {
+  style = k;
+  try { localStorage.setItem("cc-style", k); } catch {}
+  $("styles").querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", b.dataset.style === k));
+  $("chart-style").textContent = STYLES[k].chart;
+  $("cite-title").textContent = STYLES[k].cite;
+  $("copy-in").textContent = STYLES[k].copyCite;
+  $("save").textContent = "Add to " + STYLES[k].list.toLowerCase();
+  renderList();
+  if (currentC) show(currentC, currentLabel);
+}
+$("styles").innerHTML = Object.entries(STYLES).map(([k, v]) => `<button type="button" role="radio" data-style="${k}" aria-checked="false">${v.name}</button>`).join("");
+$("styles").addEventListener("click", e => { const b = e.target.closest("[data-style]"); if (b) setStyle(b.dataset.style); });
+show(EXAMPLE, "Example");
+setStyle(style);
+</script>
+
+</body></html>
