@@ -430,12 +430,12 @@ function fmtMLA(c) {
   const date = dmy(p.year, p.month, p.day, MON_MLA);
   const where = p.isDoi ? p.link : p.link.replace(/^https?:\/\//, "");
   let el = [];
-  if (p.type === "journal") el = [p.cont && `<i>${esc(p.cont)}</i>`, p.vol && `vol. ${esc(p.vol)}`, p.iss && `no. ${esc(p.iss)}`, esc(date), p.pages && `pp. ${esc(mlaPages(p.pages))}`];
+  if (p.type === "journal") el = [p.cont && `<i>${esc(p.cont)}</i>`, p.vol && `vol. ${esc(p.vol)}`, p.iss && `no. ${esc(p.iss)}`, esc(date), p.pages && `${/–/.test(p.pages) ? "pp." : "p."} ${esc(mlaPages(p.pages))}`];
   else if (p.type === "news") el = [p.cont && `<i>${esc(p.cont)}</i>`, esc(date), p.pages && `p. ${esc(p.pages)}`];
   else if (p.type === "web") el = [p.cont && !p.sameAsAuthor(p.cont) && `<i>${esc(p.cont)}</i>`, esc(date)];
   else if (vid) el = [p.cont && `<i>${esc(p.cont)}</i>`, A.length && `uploaded by ${esc(A.map(fullName).join(" and "))}`, esc(date)];
   else if (p.type === "book") el = [p.edition && `${ordinal(p.edition)} ed.`, p.pub && !p.sameAsAuthor(p.pub) && esc(p.pub), esc(p.year)];
-  else if (p.type === "chapter") el = [p.book && `<i>${esc(titleCase(p.book))}</i>`, p.eds && `edited by ${esc(p.eds)}`, p.pub && esc(p.pub), esc(p.year), p.pages && `pp. ${esc(mlaPages(p.pages))}`];
+  else if (p.type === "chapter") el = [p.book && `<i>${esc(titleCase(p.book))}</i>`, p.eds && `edited by ${esc(p.eds)}`, p.pub && esc(p.pub), esc(p.year), p.pages && `${/–/.test(p.pages) ? "pp." : "p."} ${esc(mlaPages(p.pages))}`];
   else el = [p.pub && !p.sameAsAuthor(p.pub) && esc(p.pub), esc(p.year)];
   if (where) el.push(esc(where));
   const cont = el.filter(Boolean).join(", ");
@@ -658,7 +658,7 @@ $("go-manual").onclick = () => {
 
 /* ---- Free lookup (Crossref) ---- */
 const CR = "https://api.crossref.org/works";
-const CR_FIELDS = "DOI,title,subtitle,author,editor,issued,published,container-title,volume,issue,page,publisher,type,edition-number";
+const CR_FIELDS = "DOI,title,subtitle,author,editor,issued,published,container-title,volume,issue,page,publisher,type";
 const CR_TYPE = { "journal-article": "journal", "book": "book", "monograph": "book", "edited-book": "book", "reference-book": "book",
   "book-chapter": "chapter", "book-section": "chapter", "book-part": "chapter", "reference-entry": "chapter", "proceedings-article": "chapter",
   "report": "report", "report-component": "report", "posted-content": "report", "dissertation": "report" };
